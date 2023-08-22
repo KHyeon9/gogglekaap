@@ -6,6 +6,7 @@ def create_app():
 
     @app.route('/')
     def index():
+        app.logger.info("RUN HELLOWORLD")
         return "Hello, World!"
 
     """ Routing Practice """
@@ -35,5 +36,33 @@ def create_app():
     @app.route('/test/urlfor/<path:subpath>')
     def urlfor(subpath):
         return redirect(url_for('path', subpath=subpath))
+
+    """ Request Hook """
+    from flask import g, current_app
+
+    # @app.before_first_request   flask 2.3이후 버전 부터 제거됨
+    # def before_first_request():
+    #     app.logger.info('BEFORE FIRST REQUEST')
+
+    @app.before_request
+    def before_request():
+        g.test = True
+        app.logger.info("BEFORE REQUEST")
+
+
+    @app.after_request
+    def after_request(response):
+        app.logger.info("AFTER REQUEST")
+        app.logger.info(f"g.test: {g.test}")
+        # app.logger.info(f"current_app.config: {current_app.config}")
+        return response
+
+    @app.teardown_request
+    def teardown_request(exception):
+        app.logger.info("TEARDOWN REQUEST")
+
+    @app.teardown_appcontext
+    def teardown_appcontext(exception):
+        app.logger.info("TEARDOWN APPCONTEXT")
 
     return app
