@@ -1,9 +1,13 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, flash, render_template, redirect, url_for
 
 from gogglekaap.forms.auth_form import LoginForm, RegisterForm
 
 NAME = "auth"
 bp = Blueprint(NAME, __name__, url_prefix='/auth')
+
+@bp.route('/')
+def index():
+    return redirect(url_for(f"{NAME}.login"))
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -21,7 +25,7 @@ def login():
         return f"{user_id}, {password}"
     else:
         # TODO: Error
-        pass
+        flash_form_errors(form)
 
     return render_template(f'{NAME}/login.html', form=form)
 
@@ -47,6 +51,12 @@ def register():
         return f"{user_id}, {user_name}, {password}, {repassword}"
     else:
         #TODO: Error
-        pass
+        flash_form_errors(form)
 
     return render_template(f'{NAME}/register.html', form=form)
+
+
+def flash_form_errors(form):
+    for _, errors in form.errors.items():
+        for e in errors:
+            flash(e)
