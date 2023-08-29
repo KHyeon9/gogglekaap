@@ -4,5 +4,5 @@
     {{ super() }}
 {% endblock head %}
 {% block body %}
-    <h1>Hello World {{ session.get("user_id") }}</h1>
+    <h1>Hello World {{ g.user.user_id }}</h1>
 {% endblock body %}

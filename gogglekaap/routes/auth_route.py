@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, render_template, redirect, request, url_for, session
+from flask import Blueprint, flash, render_template, redirect, request, url_for, session, g
 
 from werkzeug import security
 
@@ -8,103 +8,80 @@ from gogglekaap.models.user import User as UserModel
 NAME = "auth"
 bp = Blueprint(NAME, __name__, url_prefix='/auth')
 
-"""only for testing"""
-from dataclasses import dataclass
-USERS = []
 
-@dataclass
-class User:
-    """
-        class User:
-            def __init__(self, user_id, user_name, password):
-            self.user_id = user_id
-            self.user_name = user_name
-            self.password = password
-    """
-    user_id:str
-    user_name:str
-    password:str
+@bp.before_app_request
+def before_app_request():
+    g.user = None
+    user_id = session.get('user_id')
 
+    if user_id:
+        user = UserModel.find_one_by_user_id(user_id)
 
-USERS.append(User("mrk0607", "mrk", security.generate_password_hash("1234")))
-USERS.append(User("admin", "admin", security.generate_password_hash("1234")))
-USERS.append(User("tester", "tester", security.generate_password_hash("1234")))
-
+        if user:
+            g.user = user
+        else:
+            session.pop(user_id, None)
 
 @bp.route('/')
 def index():
     return redirect(url_for(f"{NAME}.login"))
 
+# 로그인
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
 
     if form.validate_on_submit(): # method가 POST이고 validator가 ok인 경우
-        # TODO
-        # 1) 유저 조회
-        # 2) 유저 존재 확인
-        # 3) 유저 없으면 생성(회원 가입 페이지로)
-        # 4) 로그인 유지(세션)
-
         user_id = form.data.get("user_id")
         password = form.data.get("password")
-        user = [user for user in USERS if user.user_id == user_id]
+        user = UserModel.find_one_by_user_id(user_id)
 
         if user:
-            user = user[0]
             if not security.check_password_hash(user.password, password):
                 flash("Password is not valid.")
             else:
-                session["user_id"] = user_id
+                session['user_id'] = user.user_id
                 return redirect(url_for(f"base.index"))
         else:
             flash("User ID is not exists.")
 
     else:
-        # TODO: Error
         flash_form_errors(form)
 
     return render_template(f'{NAME}/login.html', form=form)
 
+# 로그아웃
 @bp.route('/logout')
 def logout():
     session.pop("user_id", None)
     return redirect(url_for(f"{NAME}.login"))
 
+# 회원 가입
 @bp.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
+    user_id = form.user_id.data
 
     if form.validate_on_submit(): # method가 POST이고 validator가 ok인 경우
-        # TODO
-        # 1) 유저 조회
-        # 2) 유저 존재 확인
-        # 3) 유저 없으면 생성
-        # 4) 로그인 유지(세션)
-        user_id = form.data.get("user_id")
-        user_name = form.data.get("user_name")
-        password = form.data.get("password")
-        repassword = form.data.get("repassword")
-        user = [user for user in USERS if user.user_id == user_id]
-
+        user = UserModel.find_one_by_user_id(user_id)
+        print(user)
         if user:
             flash("User ID is already exists.")
-            return redirect(url_for(request.path))
+            return redirect(request.path)
         else:
-            USERS.append(
-                User(
-                    user_id = user_id,
-                    user_name = user_name,
-                    password = security.generate_password_hash(password)
+            g.db.add(
+                UserModel(
+                    user_id=user_id,
+                    user_name=form.user_name.data,
+                    password=security.generate_password_hash(form.password.data)
                 )
             )
-
-            session["user_id"] = user_id
+            g.db.commit()
+            session['user_id'] = user_id
 
             return redirect(url_for("base.index"))
 
     else:
-        #TODO: Error
         flash_form_errors(form)
 
     return render_template(f'{NAME}/register.html', form=form)
