@@ -3,6 +3,7 @@ from flask import Blueprint, flash, render_template, redirect, request, url_for,
 from werkzeug import security
 
 from gogglekaap.forms.auth_form import LoginForm, RegisterForm
+from gogglekaap.models.user import User as UserModel
 
 NAME = "auth"
 bp = Blueprint(NAME, __name__, url_prefix='/auth')
