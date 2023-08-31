@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 
 from gogglekaap.routes import base_route, auth_route
 from gogglekaap.exts import db
+from gogglekaap.apis import blueprint as api
 
 csrf = CSRFProtect()
 migrate = Migrate()
@@ -21,6 +22,9 @@ def create_app():
     if app.config['DEBUG']:
         app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 1
 
+    """ CSRF INIT """
+    csrf.init_app(app)
+
     """DB INIT"""
     db.init_app(app)
 
@@ -33,8 +37,8 @@ def create_app():
     app.register_blueprint(base_route.bp)
     app.register_blueprint(auth_route.bp)
 
-    """ CSRF INIT """
-    csrf.init_app(app)
+    """Restx INIT"""
+    app.register_blueprint(api)
 
     """REQUEST HOOK"""
     @app.before_request
