@@ -1,4 +1,5 @@
 from flask import g
+
 from flask_restx import Namespace, Resource, fields, reqparse
 
 from werkzeug import security
