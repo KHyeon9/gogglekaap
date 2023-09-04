@@ -5,6 +5,7 @@ import os
 from gogglekaap import create_app, db
 from gogglekaap.configs import TestingConfig
 from gogglekaap.models.user import User as UserModel
+from gogglekaap.models.memo import Memo as MemoModel
 
 import pytest
 
@@ -17,15 +18,29 @@ def user_data():
     )
 
 @pytest.fixture(scope='session')
-def app(user_data):
+def memo_data():
+    yield dict(
+        title="title",
+        content="content"
+    )
+
+
+@pytest.fixture(scope='session')
+def app(user_data, memo_data):
     app = create_app(TestingConfig())
 
     with app.app_context():
         db.drop_all()
         db.create_all()
-        db.session.add(UserModel(**user_data))
-        db.session.commit()
 
+        user = UserModel(**user_data)
+        db.session.add(user)
+        db.session.flush() # flush()를 통해서, user 고유 아이디 조회
+
+        memo_data['user_id'] = user.id
+        db.session.add(MemoModel(**memo_data))
+
+        db.session.commit()
         yield app
 
         # 불필요한 DB 정리
