@@ -59,7 +59,7 @@ def test_delete_memo(client):
     assert r.status_code == 204
 
     r = client.get(
-        '/api/memos/1',
+        '/api/memos',
         follow_redirects=True
     )
 

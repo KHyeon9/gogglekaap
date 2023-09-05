@@ -46,7 +46,7 @@ def app(user_data, memo_data):
         # 불필요한 DB 정리
         db.drop_all()
         db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace(
-            'sqlite://',
+            'sqlite:///',
             ''
         )
 
