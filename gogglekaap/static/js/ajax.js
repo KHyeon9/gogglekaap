@@ -287,6 +287,19 @@ const MEMO = (function(){
     // TODO
     // 1) 모달 필드를 리셋해준다: beforeSend - resetModalFields
     // 2) 조회한 데이터로 모달 필드를 반영하고, 텍스트 에리어를 트리거링 한다
+    $.ajax({
+      url: '/api/memos/' + id,
+      type: "GET",
+      beforeSend: function () {
+        resetModalFields();
+      },
+      success: function (r) {
+        $modalTitle.val(r.title);
+        $modalContent.val(r.content);
+        $modalClose.attr('data-id', r.id)
+        // TODO 이미지 랜더링 추가
+      },
+    })
   };
 
   /* 메모 삭제 */
@@ -308,7 +321,6 @@ const MEMO = (function(){
     /* PUT /api/memos/{id} */
 
     const form = $modalEdit[0];
-
     const $item = $('#item' + id);
     const $title = $item.find('.item-title');
     const $content = $item.find('.item-content');
@@ -317,12 +329,25 @@ const MEMO = (function(){
 
     console.log('updateMemo');
     if ($modalModified.val() == 1) {
-      // TODO
-      // 1) AJAX form
-      // 2) 업데이트 데이터 전송
-      // 3) 리턴값 메모 아이템에 반영
-      // 4) 에러 노출
-      // 5) 완료시 모달리셋: done - resetModalFields(true)
+      $.ajax({
+        url: '/api/memos/' + id,
+        type: 'PUT',
+        data: data,
+        enctype: 'multipart/form-data',
+        contentType: false,
+        processData: false,
+        success: function (r) {
+          $title.html(r.title);
+          $content.html(r.content);
+          // TODO 링크 이미지 랜더링
+        },
+        error: function (e) {
+          alert(e.responseText)
+        },
+        complete: function () {
+          resetModalFields(true);
+        }
+      })
     }
   };
 
