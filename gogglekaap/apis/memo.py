@@ -33,6 +33,7 @@ put_parser.replace_argument('content', required=False, help='메모 내용')
 
 get_parser = reqparse.RequestParser()
 get_parser.add_argument('page', required=False, type=int, help='메모 페이지 번호')
+get_parser.add_argument('needle', required=False, help='메모 검색어')
 
 @ns.route('')
 class MemoList(Resource):
@@ -44,12 +45,20 @@ class MemoList(Resource):
         page = args['page']
         per_page = 15
 
+        needle = args['needle']
+
         base_query = MemoModel.query.join(
             UserModel,
             UserModel.id == MemoModel.user_id
         ).filter(
             UserModel.id == g.user.id
         )
+
+        if needle:
+            needle = f'%%{needle}%%'
+            base_query = base_query.filter(
+                MemoModel.title.ilike(needle)|MemoModel.content.ilike(needle)
+            )
 
         pages = base_query.order_by(
             MemoModel.created_at.desc()
