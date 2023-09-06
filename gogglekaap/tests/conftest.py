@@ -1,6 +1,6 @@
 import sys
 sys.path.append('.')
-import os
+import os, shutil
 
 from gogglekaap import create_app, db
 from gogglekaap.configs import TestingConfig
@@ -44,6 +44,15 @@ def app(user_data, memo_data):
         yield app
 
         # 불필요한 DB 정리
+
+        # /static/user_images/tester(==user_id)
+        path = os.path.join(
+            app.static_folder,
+            app.config['USER_STATIC_BASE_DIR'],
+            user_data['user_id']
+        )
+        shutil.rmtree(path, True)
+
         db.drop_all()
         db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace(
             'sqlite:///',
