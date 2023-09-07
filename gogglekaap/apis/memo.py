@@ -1,4 +1,5 @@
 import os
+import shutil
 from webbrowser import get
 
 from flask import g, current_app
@@ -22,7 +23,7 @@ memo = ns.model(
         'user_id': fields.Integer(required=True, description='유저 고유 아이디'),
         'title': fields.String(required=True, description='메모 제목'),
         'content': fields.String(required=True, description='메모 내용'),
-        'linked_image': fields.String(required=False, description='메모 이미지 경로'),
+        'linked_image': fields.String(required=False, description='메모 이미지'),
         'created_at': fields.DateTime(description='메모 작성일'),
         'updated_at': fields.DateTime(description='메모 변경일'),
     }
@@ -139,8 +140,8 @@ class MemoList(Resource):
         return memo, 201
 
 
-@ns.route('/<int:id>')
-@ns.param('id', '메모 고유 아이디')
+@ns.param("id", '메모 고유 번호')
+@ns.route("/<int:id>")
 class Memo(Resource):
     @ns.marshal_list_with(memo, skip_none=True)
     def get(self, id):
@@ -152,7 +153,7 @@ class Memo(Resource):
 
         return memo
 
-    @ns.marshal_list_with(memo, skip_none=True)
+    @ns.marshal_with(memo, skip_none=True)
     @ns.expect(put_parser)
     def put(self, id):
         """메모 수정"""
@@ -167,6 +168,23 @@ class Memo(Resource):
 
         if args['content'] is not None:
             memo.content = args['content']
+
+        file = args['linked_image']
+
+        if file:
+            relative_path, upload_path = save_file(file)
+
+            if memo.linked_image:
+                origin_path = os.path.join(
+                    current_app.root_path,
+                    memo.linked_image
+                )
+
+                if origin_path != upload_path:
+                    if os.path.isfile(origin_path):
+                        shutil.rmtree(os.path.dirname(origin_path))
+
+            memo.linked_image = relative_path
 
         g.db.commit()
 

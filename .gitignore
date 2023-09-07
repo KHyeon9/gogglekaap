@@ -321,4 +321,8 @@ $RECYCLE.BIN/
 #sqlite
 *.db
 
+# user images
+gogglekaap/static/user_images
+
 # End of https://www.toptal.com/developers/gitignore/api/python,flask,macos,windows
+

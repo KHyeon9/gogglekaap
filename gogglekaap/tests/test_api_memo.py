@@ -93,16 +93,18 @@ def test_put_memo_with_img(client, memo_data):
 
     memo_id = r.json['id']
 
-    data = {
+    new_data = {
+        'title': 'new_title',
+        'content': 'new_content',
         'linked_image': (
-            BytesIO(b'dumy'),
+            BytesIO(b'dummy'),
             'test.jpg'
         )
     }
 
     r = client.put(
         f'/api/memos/{memo_id}',
-        data = data
+        data = new_data
     )
 
     assert r.status_code == 200
