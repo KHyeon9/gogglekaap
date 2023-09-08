@@ -94,8 +94,6 @@ def test_put_memo_with_img(client, memo_data):
     memo_id = r.json['id']
 
     new_data = {
-        'title': 'new_title',
-        'content': 'new_content',
         'linked_image': (
             BytesIO(b'dummy'),
             'test.jpg'
@@ -153,8 +151,6 @@ def test_put_memo_status_is_deleted(client):
     r = client.put(
         f'/api/memos/{r.json[0]["id"]}',
         data={
-            'title': 'new_title',
-            'content': 'new_content',
             'is_deleted': True
         }
     )

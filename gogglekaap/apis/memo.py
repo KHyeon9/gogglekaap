@@ -37,7 +37,7 @@ parser.add_argument('linked_image', location='files', required=False, type=FileS
 parser.add_argument('is_deleted', required=False, type=inputs.boolean, help='메모 삭제 상태')
 
 put_parser = parser.copy()
-put_parser.replace_argument('titme', required=False, help='메모 제목')
+put_parser.replace_argument('title', required=False, help='메모 제목')
 put_parser.replace_argument('content', required=False, help='메모 내용')
 
 get_parser = reqparse.RequestParser()
