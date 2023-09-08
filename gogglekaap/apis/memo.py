@@ -3,7 +3,7 @@ import shutil
 from webbrowser import get
 
 from flask import g, current_app
-from flask_restx import Namespace, Resource, fields, reqparse
+from flask_restx import Namespace, Resource, fields, reqparse, inputs
 
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
@@ -24,6 +24,7 @@ memo = ns.model(
         'title': fields.String(required=True, description='메모 제목'),
         'content': fields.String(required=True, description='메모 내용'),
         'linked_image': fields.String(required=False, description='메모 이미지'),
+        'is_deleted': fields.Boolean(description='메모 삭제 상태'),
         'created_at': fields.DateTime(description='메모 작성일'),
         'updated_at': fields.DateTime(description='메모 변경일'),
     }
@@ -33,6 +34,7 @@ parser = reqparse.RequestParser()
 parser.add_argument('title', required=True, help='메모 제목')
 parser.add_argument('content', required=True, help='메모 내용')
 parser.add_argument('linked_image', location='files', required=False, type=FileStorage, help='메모 이미지')
+parser.add_argument('is_deleted', required=False, type=inputs.boolean, help='메모 삭제 상태')
 
 put_parser = parser.copy()
 put_parser.replace_argument('titme', required=False, help='메모 제목')
@@ -41,6 +43,7 @@ put_parser.replace_argument('content', required=False, help='메모 내용')
 get_parser = reqparse.RequestParser()
 get_parser.add_argument('page', required=False, type=int, help='메모 페이지 번호')
 get_parser.add_argument('needle', required=False, help='메모 검색어')
+get_parser.add_argument('is_deleted', required=False, type=inputs.boolean, help='메모 삭제 상태')
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
@@ -90,16 +93,21 @@ class MemoList(Resource):
     def get(self):
         """메모 복수 조회"""
         args = get_parser.parse_args()
+        needle = args['needle']
         page = args['page']
         per_page = 15
+        is_deleted = args['is_deleted']
 
-        needle = args['needle']
+
+        if is_deleted is None:
+            is_deleted = False
 
         base_query = MemoModel.query.join(
             UserModel,
             UserModel.id == MemoModel.user_id
         ).filter(
-            UserModel.id == g.user.id
+            UserModel.id == g.user.id,
+            MemoModel.is_deleted == is_deleted
         )
 
         if needle:
@@ -127,6 +135,9 @@ class MemoList(Resource):
             content = args['content'],
             user_id = g.user.id
         )
+
+        if args['is_deleted'] is not None:
+            memo.is_deleted = args['is_deleted']
 
         file = args['linked_image']
 
@@ -168,6 +179,9 @@ class Memo(Resource):
 
         if args['content'] is not None:
             memo.content = args['content']
+
+        if args['is_deleted'] is not None:
+            memo.is_deleted = args['is_deleted']
 
         file = args['linked_image']
 
