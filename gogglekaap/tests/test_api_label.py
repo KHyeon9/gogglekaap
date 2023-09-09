@@ -10,11 +10,11 @@ def test_get_labels(client):
 
 def test_post_label(client):
     label = {
-        'content': 'label'
+        "content": "label"
     }
 
     r = client.post(
-        '/api/labels',
+        "/api/labels",
         data = label
     )
 
@@ -27,12 +27,12 @@ def test_delete_label(client):
         '/api/labels/1',
     )
 
-    assert r.sattus_code == 204
+    assert r.status_code == 204
 
     r = client.get(
         '/api/labels',
         follow_redirects=True
     )
 
-    assert r.sattus_code == 200
+    assert r.status_code == 200
     assert r.json == []

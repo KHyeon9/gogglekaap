@@ -1,9 +1,11 @@
-from flask_restx import Namespace, fields
+from flask import g
+from flask_restx import Namespace, fields, reqparse, Resource
 
+from gogglekaap.models.user import User as UserModel
 from gogglekaap.models.label import Label as LabelModel
 
 ns = Namespace(
-    'label',
+    'labels',
     description='라벨 관련 API'
 )
 
@@ -14,3 +16,49 @@ label = ns.model('Label',{
         'created_at': fields.DateTime(description="라벨 생성 일자"),
     }
 )
+
+parser = reqparse.RequestParser()
+parser.add_argument('content', required=True, type=str, help="라벨 내용")
+
+
+@ns.route('')
+class LabelList(Resource):
+    @ns.marshal_list_with(label, skip_none=True)
+    def get(self):
+        """라벨 복수 조회"""
+        query =  LabelModel.query.join(
+            UserModel,
+            UserModel.id == LabelModel.user_id
+        ).filter(
+            UserModel.id == g.user.id
+        )
+
+        return query.all()
+
+    @ns.marshal_list_with(label, skip_none=True)
+    @ns.expect(parser)
+    def post(self):
+        '''라벨 생성'''
+        args = parser.parse_args()
+        content = args['content']
+        label = LabelModel.query.join(
+            UserModel,
+            UserModel.id == LabelModel.user_id
+        ).filter(
+            UserModel.id == g.user.id,
+            LabelModel.content == content
+        ).first()
+
+        if label:
+            ns.abort(409)
+
+        label = LabelModel(
+            content = content,
+            user_id = g.user.id
+        )
+
+        g.db.add(label)
+        g.db.commit()
+
+        return label, 201
+
