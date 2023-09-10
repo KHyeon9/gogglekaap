@@ -2,6 +2,12 @@ from sqlalchemy import func
 
 from gogglekaap.exts import db
 
+memos_labels = db.Table(
+    'memos_labels',
+    db.Column('memd_id', db.Integer, db.ForeignKey('memo.id'), primary_key=True),
+    db.Column('label_id', db.Integer, db.ForeignKey('label.id'), primary_key=True),
+)
+
 class Memo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
@@ -22,4 +28,10 @@ class Memo(db.Model):
             ondelete='CASCADE'
         ),
         nullable=False
+    )
+
+    labels = db.relationship(
+        'Label', # 라벨과의 연관성을 가짐
+        secondary = memos_labels, # N:M 관계 테이블을 참조
+        backref = db.backref('memos') # Label 객체에도 memos객체에 접근하도록 처리하라
     )
