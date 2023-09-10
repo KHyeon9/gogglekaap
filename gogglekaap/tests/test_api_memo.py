@@ -216,10 +216,10 @@ def test_put_memo_with_labels(client, memo_data):
 
 def test_get_memo_with_labels(client):
     r = client.get(
-        '/api/memos?labels=1',
+        '/api/memos?label=1',
         follow_redirects=True
     )
 
     assert r.status_code == 200
-    assert len(r.json.get('labels', [])) >= 1
-    assert r.json.get('labels', [])[0]['content'] == 'test'
+    assert len(r.json) >= 1
+    assert r.json[0]['labels'][0]['content'] == 'test'
