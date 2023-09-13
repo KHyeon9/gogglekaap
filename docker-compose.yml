@@ -20,17 +20,13 @@ services:
     build: .
     networks:
       - gknet
-    # ports:
-    #   - 8080:8080
-    # depends_on:
-    #   - gk-db
     volumes:
       - ./:/var/www/gogglekaap
       - gksocket:/tmp
     restart: always
     environment:
       - FLASK_APP=gogglekaap
-      - FLASK_DEBUG=${FLASK_DEBUG:-1}
+      - FLASK_ENV=${FLASK_ENV:-development}
       - SQLALCHEMY_DATABASE_URI=${SQLALCHEMY_DATABASE_URI}
     command: ['sh', './etc/docker-entrypoint.sh']
 
