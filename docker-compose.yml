@@ -26,7 +26,7 @@ services:
     restart: always
     environment:
       - FLASK_APP=gogglekaap
-      - FLASK_ENV=${FLASK_ENV:-development}
+      - FLASK_DEBUG=${FLASK_DEBUG:-1}
       - SQLALCHEMY_DATABASE_URI=${SQLALCHEMY_DATABASE_URI}
     command: ['sh', './etc/docker-entrypoint.sh']
 
